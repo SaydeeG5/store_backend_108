@@ -1,0 +1,7 @@
+#activate the virtual environment
+
+Win: 
+venv\Scripts\activate  
+
+Mac: 
+source venv/bin/activate
