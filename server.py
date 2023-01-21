@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, request
 import json
 from mock_data import catalog
-
+from config import db  
 
 app = Flask("server")
 
@@ -34,6 +34,20 @@ def get_catalog():
     return json.dumps(catalog) 
 
 
+# save products 
+@app.post("/api/catalog")
+def save_product():
+    product = request.get_json()
+    db.products.insert_one(product)
+
+    product["_id"] = str(product["_id"]) # clean the ObjectId ("asd") fom the obj 
+    
+    return json.dumps(product)
+
+
+
+
+# get all products that belong to a category  
 @app.get("/api/catalog/<category>")
 def get_by_category(category):
     # return "I got: " + category
@@ -46,6 +60,7 @@ def get_by_category(category):
 
 @app.get("/api/catalog/search/<title>")  
 def search_by_title(title):
+    # return all products whose title CONTAINS the title variable 
     result = []
     for prod in catalog:
         if title.lower() in prod["title"].lower():
