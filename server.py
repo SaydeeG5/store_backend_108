@@ -31,8 +31,16 @@ def version():
     
 @app.get("/api/catalog")
 def get_catalog():
-    return json.dumps(catalog) 
-
+# return json.dumps(catalog) ( we are changing this to read from database)
+    cursor = db.products.find({})
+# create a list 
+    results = []
+# travel the cursor 
+    for prod in cursor: 
+# fix the underscore problem 
+        prod["_id"] = str(prod["_id"])
+        results.append(prod)
+    return json.dumps(results)
 
 # save products 
 @app.post("/api/catalog")
@@ -44,53 +52,86 @@ def save_product():
     
     return json.dumps(product)
 
-
-
-
 # get all products that belong to a category  
 @app.get("/api/catalog/<category>")
 def get_by_category(category):
-    # return "I got: " + category
-    result = []
-    for prod in catalog:
-        if prod["category"].lower() == category.lower():
-            result.append(prod)
+
+    cursor = db.products.find({"category": category})
+    results = []
+    for prod in cursor: 
+        prod["_id"] = str(prod["_id"])
+        results.append(prod)
+
+    return json.dumps(results)
+
+    # result = []
+    # for prod in catalog:
+    #     if prod["category"].lower() == category.lower():
+    #         result.append(prod)
     
-    return json.dumps(result)
+    # return json.dumps(result)
 
 @app.get("/api/catalog/search/<title>")  
 def search_by_title(title):
-    # return all products whose title CONTAINS the title variable 
-    result = []
-    for prod in catalog:
-        if title.lower() in prod["title"].lower():
-            result.append(prod)
+    cursor = db.products.find({"title": {"$regex":title,"$options": "i"}})
+    results = [] 
+    for prod in cursor: 
+        prod["_id"] = str(prod["_id"])
+        results.append(prod)
+        
+    return json.dumps(results)
 
-    return json.dumps(result)
+    # # return all products whose title CONTAINS the title variable 
+    # result = []
+    # for prod in catalog:
+    #     if title.lower() in prod["title"].lower():
+    #         result.append(prod)
+
+    # return json.dumps(result)
 
 @app.get("/api/product/cheaper/<price>")
 def product_cheaper(price):
-    result = []
-    for prod in catalog:
+    cursor = db.products.find({})
+    results = []
+    for prod in cursor: 
         if prod["price"] <= float(price):
-            result.append(prod)
+            prod["_id"] = str(prod["_id"])
+            results.append(prod)
 
-    return json.dumps(result) 
+    return json.dumps(results)
 
-@app.get("/api/product/length")
-def product_length():
-        count = len(catalog)
-        return json.dumps(count)
+    # result = []
+    # for prod in catalog:
+    #     if prod["price"] <= float(price):
+    #         result.append(prod)
+
+    # return json.dumps(result) 
+
+@app.get("/api/product/count")
+def count_products():
+
+    count = db.products.count_documents({})
+    return json.dumps(count)
+        
 
 
 @app.get("/api/product/cheapest")
 def get_cheapest():
-    answer = catalog[0]
-    for prod in catalog: 
+    cursor = db.products.find({})
+    answer = cursor[0]
+    for prod in cursor: 
         if prod["price"] < answer["price"]:
-            answer = prod 
+            answer= prod 
 
+    answer["_id"] = str(answer["_id"])
     return json.dumps(answer)
+
+    # answer = catalog[0]
+    # for prod in catalog: 
+    #     if prod["price"] < answer["price"]:
+    #         answer = prod 
+
+    # return json.dumps(answer)
 
 
 
